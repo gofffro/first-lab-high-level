@@ -2,6 +2,7 @@
 out/
 *.iml
 *.jar
+!lib/kotlinx-cli-jvm-0.3.6.jar
 .kotlin/
 .vscode/
 .DS_Store
