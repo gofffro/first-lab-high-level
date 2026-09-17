@@ -47,3 +47,7 @@ java -jar app.jar --help
 ```
 
 Скрипт проверяет десять сценариев и выводит результат в формате `OK/FAIL` и итог `10/10`.
+
+Результат проверки:
+<img width="867" height="288" alt="image" src="https://github.com/user-attachments/assets/9c7356d4-a364-44dc-8464-42a72373ec13" />
+
