@@ -1,0 +1,7 @@
+.idea/
+out/
+*.iml
+*.jar
+.kotlin/
+.vscode/
+.DS_Store
