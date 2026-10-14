@@ -15,7 +15,7 @@ if [ ! -f "$cli_jar" ]; then
     curl -fL "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-cli-jvm/0.3.6/kotlinx-cli-jvm-0.3.6.jar" -o "$cli_jar"
 fi
 
-kotlinc "$root_dir/src/Main.kt" -classpath "$cli_jar" -include-runtime -d "$app_jar"
+kotlinc "$root_dir"/src/*.kt -classpath "$cli_jar" -include-runtime -d "$app_jar"
 
 temp_dir="$(mktemp -d)"
 trap 'rm -rf "$temp_dir"' EXIT
