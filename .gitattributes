@@ -1,0 +1,4 @@
+*.sh text eol=lf
+*.kt text eol=lf
+*.md text eol=lf
+lib/SHA256SUMS text eol=lf

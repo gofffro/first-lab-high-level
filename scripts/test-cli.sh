@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-root_dir="$(cd "$(dirname "$0")" && pwd)"
-"$root_dir/build.sh" >/dev/null
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+bash "$root_dir/scripts/build.sh" >/dev/null
 
 passed=0
 total=0
@@ -36,6 +36,11 @@ run_case "resource not found" 6 --login alice --password qwerty --action read --
 run_case "invalid resource" 7 --login alice --password qwerty --action read --resource A..B --volume 10
 run_case "invalid volume" 7 --login alice --password qwerty --action read --resource A.B.C --volume none
 run_case "volume limit exceeded" 8 --login alice --password qwerty --action read --resource A.B.C --volume 21
+
+# kotlinx-cli terminates the JVM for syntax errors; test these only in child processes.
+run_case "unknown option (library exit)" 127 --unknown value
+run_case "option without value (library exit)" 127 --login
+run_case "unexpected positional argument (library exit)" 127 unexpected
 
 echo "$passed/$total"
 [ "$passed" -eq "$total" ]

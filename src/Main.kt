@@ -3,10 +3,14 @@ import application.port.`in`.CheckAccessUseCase
 import config.CompositionRoot
 import kotlin.system.exitProcess
 
-internal fun run(args: Array<String>, useCase: CheckAccessUseCase = CompositionRoot.createUseCase()): Int {
+internal fun run(
+    args: Array<String>,
+    useCase: CheckAccessUseCase = CompositionRoot.createUseCase(),
+    output: (String) -> Unit = ::println
+): Int {
     return when (val parsed = CliParser().parse(args)) {
-        CliParseResult.Help -> { HelpPrinter.print(); CliResultPresenter.HELP_REQUESTED }
-        CliParseResult.Invalid -> { HelpPrinter.print(); CliResultPresenter.INVALID_RESOURCE_OR_VOLUME }
+        CliParseResult.Help -> { HelpPrinter.print(output); CliResultPresenter.HELP_REQUESTED }
+        CliParseResult.Invalid -> { HelpPrinter.print(output); CliResultPresenter.INVALID_RESOURCE_OR_VOLUME }
         is CliParseResult.Success -> CliResultPresenter.exitCode(CliController(useCase).execute(parsed.command))
     }
 }
