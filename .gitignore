@@ -1,5 +1,5 @@
 .idea/
-out/
+/out/
 *.iml
 *.jar
 !lib/kotlinx-cli-jvm-0.3.6.jar
