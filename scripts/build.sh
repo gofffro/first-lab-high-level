@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-root_dir="$(cd "$(dirname "$0")" && pwd)"
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 cli_jar="$root_dir/lib/kotlinx-cli-jvm-0.3.6.jar"
 app_jar="$root_dir/app.jar"
 
@@ -20,7 +20,7 @@ if [ "${#kotlin_sources[@]}" -eq 0 ]; then
     echo "No Kotlin sources found" >&2
     exit 1
 fi
-kotlinc "${kotlin_sources[@]}" -classpath "$cli_jar" -include-runtime -d "$app_jar"
+kotlinc "${kotlin_sources[@]}" -classpath "$(native_path "$cli_jar")" -include-runtime -d "$app_jar"
 
 temp_dir="$(mktemp -d)"
 trap 'rm -rf "$temp_dir"' EXIT
