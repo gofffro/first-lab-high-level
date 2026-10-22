@@ -37,7 +37,7 @@ class CliParser {
 }
 
 object HelpPrinter {
-    fun print() = println("""
+    fun print(output: (String) -> Unit = ::println) = output("""
 Usage: java -jar app.jar --login LOGIN --password PASSWORD --action ACTION --resource PATH --volume VOLUME
 
 Options:
