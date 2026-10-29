@@ -1,5 +1,7 @@
 # План интеграции SonarCloud
 
+План будущей интеграции. SonarCloud не является частью лабораторной №5; её локальные проверки описаны в [README](README.md). Фактический каталог тестов — `tests/`, скриптов — `scripts/`.
+
 ## Цель
 
 Подключить автоматический анализ Kotlin-кода к ветке `master` и pull request так, чтобы новые ошибки качества и безопасности были видны до слияния. На первом этапе анализ проводится без изменения исходного кода и без добавления Gradle/Maven.
@@ -23,7 +25,7 @@ SonarQube Cloud (бывший SonarCloud) анализирует основну�
 sonar.projectKey=<organization>_<project>
 sonar.organization=<organization>
 sonar.sources=src
-sonar.tests=src/test
+sonar.tests=tests
 sonar.sourceEncoding=UTF-8
 sonar.exclusions=**/*.jar,**/build/**,**/out/**,**/.idea/**
 ```
