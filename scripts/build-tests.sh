@@ -10,11 +10,12 @@ for command_name in kotlinc java; do
 done
 junit_jar="$root_dir/lib/junit-platform-console-standalone-1.12.2.jar"
 cli_jar="$root_dir/lib/kotlinx-cli-jvm-0.3.6.jar"
-if [ ! -f "$junit_jar" ] || [ ! -f "$cli_jar" ]; then
+h2_jar="$root_dir/lib/h2-2.3.232.jar"
+if [ ! -f "$junit_jar" ] || [ ! -f "$cli_jar" ] || [ ! -f "$h2_jar" ]; then
     echo 'Missing libraries in lib/. See docs/README.md and scripts/setup-libs.sh.' >&2
     exit 1
 fi
 mapfile -d '' kotlin_sources < <(find "$root_dir/src" "$root_dir/tests" -type f -name '*.kt' -print0)
-test_classpath="$(native_path "$junit_jar")$classpath_separator$(native_path "$cli_jar")"
+test_classpath="$(native_path "$junit_jar")$classpath_separator$(native_path "$cli_jar")$classpath_separator$(native_path "$h2_jar")"
 mkdir -p "$root_dir/out"
 kotlinc "${kotlin_sources[@]}" -classpath "$test_classpath" -include-runtime -d "$root_dir/out/tests.jar"

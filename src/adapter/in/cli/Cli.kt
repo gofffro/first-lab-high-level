@@ -66,6 +66,8 @@ object CliResultPresenter {
     const val RESOURCE_NOT_FOUND = 6
     const val INVALID_RESOURCE_OR_VOLUME = 7
     const val VOLUME_LIMIT_EXCEEDED = 8
+    const val DATABASE_CONNECTION_ERROR = 9
+    const val DATABASE_QUERY_ERROR = 10
 
     fun exitCode(result: AccessCheckResult): Int = when (result) {
         AccessCheckResult.SUCCESS -> SUCCESS
@@ -76,5 +78,7 @@ object CliResultPresenter {
         AccessCheckResult.RESOURCE_NOT_FOUND -> RESOURCE_NOT_FOUND
         AccessCheckResult.INVALID_RESOURCE_OR_VOLUME -> INVALID_RESOURCE_OR_VOLUME
         AccessCheckResult.VOLUME_LIMIT_EXCEEDED -> VOLUME_LIMIT_EXCEEDED
+        AccessCheckResult.DATABASE_CONNECTION_ERROR -> DATABASE_CONNECTION_ERROR
+        AccessCheckResult.DATABASE_QUERY_ERROR -> DATABASE_QUERY_ERROR
     }
 }

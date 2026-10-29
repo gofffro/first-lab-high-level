@@ -5,6 +5,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 # Explicit downloads only: no dependency resolver or build system.
 base_url='https://repo.maven.apache.org/maven2'
 artifacts=(
+    'com/h2database/h2/2.3.232/h2-2.3.232.jar'
     'org/jetbrains/kotlinx/kotlinx-cli-jvm/0.3.6/kotlinx-cli-jvm-0.3.6.jar'
     'org/junit/platform/junit-platform-console-standalone/1.12.2/junit-platform-console-standalone-1.12.2.jar'
     'org/junit/jupiter/junit-jupiter-api/5.12.2/junit-jupiter-api-5.12.2.jar'

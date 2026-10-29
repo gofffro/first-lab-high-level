@@ -3,6 +3,11 @@
 *.iml
 *.jar
 !lib/kotlinx-cli-jvm-0.3.6.jar
+!lib/h2-2.3.232.jar
+/data/
+*.mv.db
+*.trace.db
+*.lock.db
 !lib/junit-platform-console-standalone-1.12.2.jar
 !lib/junit-jupiter-api-5.12.2.jar
 !lib/junit-jupiter-engine-5.12.2.jar

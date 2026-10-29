@@ -13,3 +13,13 @@ native_path() {
         printf '%s' "$1"
     fi
 }
+
+absolute_native_path() {
+    if [ "$classpath_separator" = ';' ]; then
+        cygpath -am "$1"
+    elif [[ "$1" = /* ]]; then
+        printf '%s' "$1"
+    else
+        printf '%s/%s' "$PWD" "$1"
+    fi
+}

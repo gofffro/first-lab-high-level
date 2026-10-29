@@ -3,6 +3,7 @@ set -euo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 cli_jar="$root_dir/lib/kotlinx-cli-jvm-0.3.6.jar"
+h2_jar="$root_dir/lib/h2-2.3.232.jar"
 app_jar="$root_dir/app.jar"
 
 if ! command -v kotlinc >/dev/null 2>&1; then
@@ -14,16 +15,21 @@ if [ ! -f "$cli_jar" ]; then
     mkdir -p "$root_dir/lib"
     curl -fL "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-cli-jvm/0.3.6/kotlinx-cli-jvm-0.3.6.jar" -o "$cli_jar"
 fi
+if [ ! -f "$h2_jar" ]; then
+    echo 'H2 driver missing. Run bash scripts/setup-libs.sh.' >&2
+    exit 1
+fi
 
 mapfile -d '' kotlin_sources < <(find "$root_dir/src" -type f -name '*.kt' -print0)
 if [ "${#kotlin_sources[@]}" -eq 0 ]; then
     echo "No Kotlin sources found" >&2
     exit 1
 fi
-kotlinc "${kotlin_sources[@]}" -classpath "$(native_path "$cli_jar")" -include-runtime -d "$app_jar"
+kotlinc "${kotlin_sources[@]}" -classpath "$(native_path "$cli_jar")$classpath_separator$(native_path "$h2_jar")" -include-runtime -d "$app_jar"
 
 temp_dir="$(mktemp -d)"
 trap 'rm -rf "$temp_dir"' EXIT
-unzip -q "$cli_jar" -d "$temp_dir"
+unzip -oq "$cli_jar" -d "$temp_dir"
+unzip -oq "$h2_jar" -d "$temp_dir"
 rm -rf "$temp_dir/META-INF"
 jar uf "$app_jar" -C "$temp_dir" .
