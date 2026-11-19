@@ -12,7 +12,7 @@ class MainRunTest {
     private val validArguments = arrayOf("--login", "tester", "--password", "secret", "--action", "read", "--resource", "A.B", "--volume", "10")
 
     @ParameterizedTest
-    @CsvSource("SUCCESS,0", "INVALID_PASSWORD,2", "INVALID_LOGIN,3", "UNKNOWN_ACTION,4", "ACCESS_DENIED,5", "RESOURCE_NOT_FOUND,6", "INVALID_RESOURCE_OR_VOLUME,7", "VOLUME_LIMIT_EXCEEDED,8")
+    @CsvSource("SUCCESS,0", "INVALID_PASSWORD,2", "INVALID_LOGIN,3", "UNKNOWN_ACTION,4", "ACCESS_DENIED,5", "RESOURCE_NOT_FOUND,6", "INVALID_RESOURCE_OR_VOLUME,7", "VOLUME_LIMIT_EXCEEDED,8", "DATABASE_CONNECTION_ERROR,9", "DATABASE_QUERY_ERROR,10")
     fun shouldReturnUseCaseExitCodeWithoutPrintingBusinessResult(result: AccessCheckResult, expectedCode: Int) {
         val calls = mutableListOf<AccessRequest>()
         val output = mutableListOf<String>()

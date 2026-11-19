@@ -1,0 +1,66 @@
+name: Build and verify
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/cache@v4
+        with:
+          path: ${{ runner.tool_cache }}/kotlin-2.4.20
+          key: kotlin-2.4.20-${{ runner.os }}-${{ runner.arch }}
+      - name: Install Kotlin CLI
+        run: bash scripts/install-kotlin.sh
+      - name: Verify JAR dependencies
+        run: bash scripts/setup-libs.sh
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: java-kotlin
+          build-mode: manual
+      - name: Build the fat JAR
+        run: bash scripts/build.sh
+      - name: Run CodeQL
+        uses: github/codeql-action/analyze@v4
+        with:
+          upload: never
+          output: out/codeql
+      - name: Check analysis results
+        run: python3 scripts/check-codeql.py out/codeql
+      - name: Run JUnit and application tests
+        run: bash scripts/test.sh --use-built-jar
+      - name: Prepare and verify the standalone release JAR
+        run: bash scripts/prepare-release.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: checked-${{ github.sha }}
+          path: |
+            out/release/app.jar
+            out/release/init.sql
+            out/release/fill.sql
+            out/release/commit.txt
+            out/release/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reports-${{ github.sha }}
+          path: |
+            out/codeql/
+            out/test-results/
+          overwrite: true

@@ -1,14 +1,28 @@
 package tests.integration
 
 import config.CompositionRoot
+import adapter.out.jdbc.ConnectionProvider
 import domain.model.AccessCheckResult
 import domain.model.AccessRequest
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import tests.support.TestDatabase
+import java.nio.file.Path
 
 // Small integration contract: verifies wiring and actual default data separately from unit tests.
 class CompositionRootTest {
+    @TempDir
+    lateinit var directory: Path
+    private lateinit var connections: ConnectionProvider
+
+    @BeforeEach
+    fun initializeFileDatabaseFromSql() {
+        connections = TestDatabase.create(directory.resolve("access"))
+    }
+
     @ParameterizedTest
     @CsvSource(
         "alice,qwerty,read,A.B.C,10,SUCCESS",
@@ -28,6 +42,6 @@ class CompositionRootTest {
     fun shouldWireRealAdaptersAndPreserveDefaultDataContract(
         login: String, password: String, action: String, resource: String, volume: String, expected: AccessCheckResult
     ) {
-        assertEquals(expected, CompositionRoot.createUseCase().execute(AccessRequest(login, password, action, resource, volume)))
+        assertEquals(expected, CompositionRoot.createUseCase(connections).execute(AccessRequest(login, password, action, resource, volume)))
     }
 }

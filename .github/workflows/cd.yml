@@ -1,0 +1,65 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/checks.yml
+  publish:
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    concurrency:
+      group: release-${{ github.sha }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: checked-${{ github.sha }}
+          path: out/release
+      - name: Verify checked commit and JAR
+        run: |
+          test "$(cat out/release/commit.txt)" = "$GITHUB_SHA"
+          (cd out/release && sha256sum -c SHA256SUMS)
+          cp out/release/app.jar app.jar
+      - name: Build image
+        run: bash scripts/build-docker.sh first-lab-high-level:checked
+      - name: Verify container exit codes and JAR before publishing
+        run: bash scripts/test-docker.sh first-lab-high-level:checked
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Push the tested image and publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        run: bash scripts/publish-release.sh
+  notify:
+    if: always() && github.ref == 'refs/heads/main'
+    needs: [checks, publish]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Notify Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          WORKFLOW_RESULT: ${{ needs.checks.result == 'success' && needs.publish.result || needs.checks.result }}
+        run: bash scripts/notify-telegram.sh
