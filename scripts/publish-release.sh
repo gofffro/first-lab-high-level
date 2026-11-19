@@ -23,7 +23,7 @@ fi
 docker tag first-lab-high-level:checked "$image"
 docker push "$image"
 if [ -z "$release_draft" ]; then
-    notes="$(printf 'Commit: `%s`\n\nDocker image: `%s`\n\nhttps://hub.docker.com/r/%s/first-lab-high-level/tags?name=sha-%s\n\nThe fat JAR includes Kotlin, H2 and kotlinx-cli. See the README for database initialization.\n' \
+    notes="$(printf 'Commit: `%s`\n\nDocker image: `%s`\n\nhttps://hub.docker.com/r/%s/first-lab-high-level/tags?name=sha-%s\n\nThe executable JAR includes Spring Boot, Kotlin and H2. See the README for database initialization.\n' \
         "$commit" "$image" "$namespace" "$commit")"
     gh release create "$tag" --repo "$repo" --target "$commit" --draft \
         --title "$tag" --notes "$notes"

@@ -18,14 +18,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - uses: actions/cache@v4
-        with:
-          path: ${{ runner.tool_cache }}/kotlin-2.4.20
-          key: kotlin-2.4.20-${{ runner.os }}-${{ runner.arch }}
-      - name: Install Kotlin CLI
-        run: bash scripts/install-kotlin.sh
-      - name: Verify JAR dependencies
-        run: bash scripts/setup-libs.sh
+          cache: maven
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
@@ -62,5 +55,5 @@ jobs:
           name: reports-${{ github.sha }}
           path: |
             out/codeql/
-            out/test-results/
+            target/surefire-reports/
           overwrite: true

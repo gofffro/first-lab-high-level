@@ -10,6 +10,9 @@ fi
 mkdir -p "$root_dir/out"
 test_dir="$(mktemp -d "$root_dir/out/cli-db.XXXXXX")"
 export APP_DB_PATH="$(native_path "$test_dir/access")"
+export APP_LOG_FILE="$(native_path "$test_dir/access.log")"
+export APP_JAR="$root_dir/app.jar"
+app_jar="$APP_JAR"
 bash "$root_dir/scripts/init-db.sh"
 
 passed=0
@@ -27,10 +30,12 @@ run_case() {
     set -e
 
     local quiet=true
-    if [ "$expected" -ne 1 ] && [ "$expected" -ne 127 ]; then
-        if [ -s "$test_dir/stdout" ] || [ -s "$test_dir/stderr" ]; then
-            quiet=false
-        fi
+    if [ -s "$test_dir/stderr" ]; then
+        quiet=false
+    elif [ "$expected" -eq 1 ]; then
+        grep -q '^Usage: java -jar app.jar' "$test_dir/stdout" || quiet=false
+    elif [ -s "$test_dir/stdout" ]; then
+        quiet=false
     fi
     if [ "$actual" -eq "$expected" ] && [ "$quiet" = true ]; then
         echo "OK: $name"
@@ -51,10 +56,9 @@ run_case "invalid resource" 7 --login alice --password qwerty --action read --re
 run_case "invalid volume" 7 --login alice --password qwerty --action read --resource A.B.C --volume none
 run_case "volume limit exceeded" 8 --login alice --password qwerty --action read --resource A.B.C --volume 21
 
-# kotlinx-cli terminates the JVM for syntax errors; test these only in child processes.
-run_case "unknown option (library exit)" 127 --unknown value
-run_case "option without value (library exit)" 127 --login
-run_case "unexpected positional argument (library exit)" 127 unexpected
+run_case "unknown option" 127 --unknown value
+run_case "option without value" 127 --login
+run_case "unexpected positional argument" 127 unexpected
 
 # A second initialization preserves the data and produces no duplicate rows.
 bash "$root_dir/scripts/init-db.sh"
@@ -67,10 +71,13 @@ run_case "help without database" 1 --help
 
 # Break only a disposable test database. The user's data/access DB is never touched.
 export APP_DB_PATH="$initialized_db"
-java -cp "$(native_path "$root_dir/lib/h2-2.3.232.jar")" org.h2.tools.Shell \
+run_h2 Shell \
     -url "jdbc:h2:file:$APP_DB_PATH;IFEXISTS=TRUE" -user sa -password '' \
     -sql 'ALTER TABLE resources RENAME COLUMN maximum_volume TO broken_volume' >"$test_dir/setup.log"
 run_case "SQL query error" 10 --login alice --password qwerty --action read --resource A --volume 1
 
+grep -q 'CLI completed with exit code 0' "$test_dir/access.log"
+grep -q 'Database query failed' "$test_dir/access.log"
+echo 'OK: application logs are written to file'
 echo "$passed/$total"
 [ "$passed" -eq "$total" ]

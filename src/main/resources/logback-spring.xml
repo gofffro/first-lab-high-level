@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property name="LOG_FILE" value="${APP_LOG_FILE:-logs/access.log}"/>
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+            <maxFileSize>5MB</maxFileSize>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%date %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <root level="INFO">
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>
