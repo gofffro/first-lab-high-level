@@ -4,18 +4,31 @@
 
 ## Локальная сборка и тесты
 
-Из корня проекта в Bash с JDK 21 и Kotlin CLI 2.4.20 в `PATH`.
+Установите JDK 21 и запустите из корня проекта. Maven Wrapper скачает закреплённую версию Maven и зависимости при первой сборке. В PowerShell используйте `.\mvnw.cmd` вместо `./mvnw`.
 
 ```bash
-bash scripts/setup-libs.sh
+./mvnw clean verify
 bash scripts/build.sh
-bash scripts/test-unit.sh
-bash scripts/test.sh
 bash scripts/init-db.sh
 java -jar app.jar --login alice --password qwerty --action read --resource A.B.C --volume 10
+bash scripts/test.sh
 ```
 
-`test-unit.sh` запускает JUnit, включая тесты JDBC. `test.sh` запускает JUnit и отдельно проверяет приложение через CLI. В Windows используйте Git Bash. JAR собирается без Maven и Gradle.
+`./mvnw test` запускает JUnit, включая тесты JDBC и Spring DI. `./mvnw package` создаёт исполняемый `target/app.jar`. Скрипт `build.sh` также копирует его в корень для Docker, а `test.sh` запускает JUnit и проверки CLI. В Windows запускайте Bash-скрипты из Git Bash.
+
+### Spring Boot и логирование
+
+`CommandLineRunner` передаёт аргументы CLI, а `ExitCodeGenerator` возвращает код процесса. Spring Boot запускается без веб-сервера и баннера. Контейнер внедряет зависимости сервисов и JDBC-репозиториев через конструкторы. Доменные правила остаются обычными Kotlin-классами.
+
+SLF4J и Logback записывают результат CLI и ошибки БД в `logs/access.log`. Можно указать другой путь через `APP_LOG_FILE`. Для файла H2 используется `APP_DB_PATH`, по умолчанию `data/access` без расширения `.mv.db`. В консоль приложение выводит только справку. Коды доступа и БД сохранены. Код 127 означает ошибку синтаксиса CLI, код 11 — сбой запуска Spring.
+
+Для запуска из Maven после инициализации БД:
+
+```bash
+./mvnw spring-boot:run '-Dspring-boot.run.arguments=--login alice --password qwerty --action read --resource A.B.C --volume 10'
+```
+
+Для получения исходного кода завершения CLI используйте `java -jar`. Maven сообщает о ненулевом коде дочернего процесса как об ошибке своей команды.
 
 ## Docker
 
@@ -33,7 +46,7 @@ echo $?
 
 ## CI и CD
 
-- `ci.yml` запускает сборку, CodeQL, JUnit и проверку CLI при открытии и обновлении PR в `main`.
+- `ci.yml` запускает сборку Maven, CodeQL, JUnit, проверку CLI и тест контейнера при открытии и обновлении PR в `main`.
 - `cd.yml` запускается при push в `main`. Его также можно запустить вручную из `main`.
 - Оба используют одну схему проверок. CodeQL анализирует Kotlin во время сборки и блокирует выпуск при сбое анализа или находках уровня `error`. Отчёт SARIF и результаты JUnit доступны в артефактах запуска.
 - CD проверяет SHA коммита и контрольные суммы полученных файлов. Затем он собирает образ из проверенного JAR и запускает три сценария в контейнерах. После успешных проверок этот же образ публикуется с тегом `sha-<SHA>`. Публичный GitHub Release `build-<SHA>` содержит ссылку на образ, тот же fat JAR, SQL, SHA коммита и контрольные суммы.
@@ -42,7 +55,7 @@ echo $?
 Из [релиза](https://github.com/gofffro/first-lab-high-level/releases) можно взять `app.jar`, `init.sql` и `fill.sql`. Из каталога скачанных файлов инициализируйте H2 встроенной утилитой, затем запустите JAR.
 
 ```bash
-java -cp app.jar org.h2.tools.RunScript -url jdbc:h2:./data/access -user sa -script init.sql
-java -cp app.jar org.h2.tools.RunScript -url jdbc:h2:./data/access -user sa -script fill.sql
+java -Dloader.main=org.h2.tools.RunScript -cp app.jar org.springframework.boot.loader.launch.PropertiesLauncher -url jdbc:h2:./data/access -user sa -script init.sql
+java -Dloader.main=org.h2.tools.RunScript -cp app.jar org.springframework.boot.loader.launch.PropertiesLauncher -url jdbc:h2:./data/access -user sa -script fill.sql
 java -jar app.jar --login alice --password qwerty --action read --resource A.B.C --volume 10
 ```

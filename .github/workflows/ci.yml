@@ -11,9 +11,30 @@ permissions:
 jobs:
   checks:
     uses: ./.github/workflows/checks.yml
+  container:
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: checked-${{ github.sha }}
+          path: out/release
+      - name: Verify checked commit and JAR
+        run: |
+          test "$(cat out/release/commit.txt)" = "$GITHUB_SHA"
+          (cd out/release && sha256sum -c SHA256SUMS)
+          cp out/release/app.jar app.jar
+      - name: Build and test local Docker image
+        run: |
+          bash scripts/build-docker.sh first-lab-high-level:pr
+          bash scripts/test-docker.sh first-lab-high-level:pr
   notify:
     if: always() && github.event.pull_request.head.repo.full_name == github.repository
-    needs: checks
+    needs: [checks, container]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -24,5 +45,5 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          WORKFLOW_RESULT: ${{ needs.checks.result }}
+          WORKFLOW_RESULT: ${{ needs.checks.result == 'success' && needs.container.result || needs.checks.result }}
         run: bash scripts/notify-telegram.sh

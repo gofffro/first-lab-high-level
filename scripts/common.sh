@@ -23,3 +23,19 @@ absolute_native_path() {
         printf '%s/%s' "$PWD" "$1"
     fi
 }
+
+maven() (
+    cd "$root_dir"
+    if [ "$classpath_separator" = ';' ]; then
+        ./mvnw.cmd -B -ntp "$@"
+    else
+        bash ./mvnw -B -ntp "$@"
+    fi
+)
+
+run_h2() {
+    local tool="$1"
+    shift
+    java "-Dloader.main=org.h2.tools.$tool" -cp "$(native_path "$app_jar")" \
+        org.springframework.boot.loader.launch.PropertiesLauncher "$@"
+}
