@@ -2,7 +2,11 @@
 set -euo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
-bash "$root_dir/scripts/build.sh" >/dev/null
+if [ "${1:-}" = '--use-built-jar' ]; then
+    test -f "$root_dir/app.jar"
+else
+    bash "$root_dir/scripts/build.sh" >/dev/null
+fi
 mkdir -p "$root_dir/out"
 test_dir="$(mktemp -d "$root_dir/out/cli-db.XXXXXX")"
 export APP_DB_PATH="$(native_path "$test_dir/access")"

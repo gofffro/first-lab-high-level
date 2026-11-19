@@ -1,0 +1,6 @@
+*
+!app.jar
+!scripts/
+scripts/*
+!scripts/init.sql
+!scripts/fill.sql
